@@ -6,6 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/GaryBoone/GoStats/stats"
@@ -85,12 +87,14 @@ func main() {
 		if !*quiet {
 			log.Println("Starting client ", i)
 		}
+		pwd := strings.Replace(*password, "{}", strconv.FormatInt(int64(i), 10), -1)
+		subj := strings.Replace(*topic, "{}", strconv.FormatInt(int64(i), 10), -1)
 		c := &Client{
 			ID:         i,
 			BrokerURL:  *broker,
 			BrokerUser: *username,
-			BrokerPass: *password,
-			MsgTopic:   *topic,
+			BrokerPass: pwd,
+			MsgTopic:   subj,
 			MsgSize:    *size,
 			MsgCount:   *count,
 			MsgQoS:     byte(*qos),
