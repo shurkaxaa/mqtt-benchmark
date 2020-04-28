@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"log"
 	"time"
-)
 
-import (
 	"github.com/GaryBoone/GoStats/stats"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
@@ -21,6 +20,7 @@ type Client struct {
 	MsgCount   int
 	MsgQoS     byte
 	Quiet      bool
+	BootWait   int
 }
 
 func (c *Client) Run(res chan *RunResults) {
@@ -87,6 +87,12 @@ func (c *Client) pubMessages(in, out chan *Message, doneGen, donePub chan bool) 
 		if !c.Quiet {
 			log.Printf("CLIENT %v is connected to the broker %v\n", c.ID, c.BrokerURL)
 		}
+		if c.BootWait > 0 {
+			select {
+			case <-time.After(time.Duration(c.BootWait) * time.Second):
+				log.Printf("==================== CLIENT %v publish started =======================\n", c.ID)
+			}
+		}
 		ctr := 0
 		for {
 			select {
@@ -124,6 +130,7 @@ func (c *Client) pubMessages(in, out chan *Message, doneGen, donePub chan bool) 
 		SetClientID(fmt.Sprintf("mqtt-benchmark-%v-%v", time.Now().Format(time.RFC3339Nano), c.ID)).
 		SetCleanSession(true).
 		SetAutoReconnect(true).
+		SetKeepAlive(time.Duration(c.BootWait/2) * time.Second).
 		SetOnConnectHandler(onConnected).
 		SetConnectionLostHandler(func(client mqtt.Client, reason error) {
 			log.Printf("CLIENT %v lost connection to the broker: %v. Will reconnect...\n", c.ID, reason.Error())
