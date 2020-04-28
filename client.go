@@ -78,7 +78,7 @@ func (c *Client) genMessages(ch chan *Message, done chan bool) {
 		}
 	}
 	done <- true
-	// log.Printf("CLIENT %v is done generating messages\n", c.ID)
+	log.Printf("CLIENT %v is done generating messages\n", c.ID)
 	return
 }
 
@@ -90,7 +90,9 @@ func (c *Client) pubMessages(in, out chan *Message, doneGen, donePub chan bool) 
 		if c.BootWait > 0 {
 			select {
 			case <-time.After(time.Duration(c.BootWait) * time.Second):
-				log.Printf("==================== CLIENT %v publish started =======================\n", c.ID)
+				if !c.Quiet {
+					log.Printf("==================== CLIENT %v publish started =======================\n", c.ID)
+				}
 			}
 		}
 		ctr := 0
